@@ -1,0 +1,71 @@
+shared:
+    priority_rules: &priority_rules
+        - name: hotfix PR detected
+          conditions:
+            - label=hotfix
+          priority: high
+        - name: lowprio PR detected
+          conditions:
+            - author=dependabot[bot]
+          priority: low
+
+pull_request_rules:
+   - name: queue PR with queue label
+     conditions:
+       - label=queue
+     actions:
+       queue:
+
+
+partition_rules:
+  - name: rush
+    conditions:
+      - files~=^apps/rush
+
+  - name: heft
+    conditions:
+      - files~=^apps/heft
+
+  - name: rundown
+    conditions:
+      - files~=^apps/rundown
+
+
+queue_rules:
+  - name: hotfix
+    priority_rules: *priority_rules
+    queue_conditions:
+      - label=hotfix
+    merge_conditions:
+      - or:
+        - and:
+          - queue-partition-name=rush
+          - "check-success=File Doc Tickets / File Tickets (pull_request)"
+          - "check-success=CI / Node.js v14 (pull_request)"
+          - "check-success=CI / Node.js v16 (pull_request)"
+        - and:
+          - queue-partition-name=heft
+          - "check-success=CI / Node.js v14 (pull_request)"
+          - "check-success=CI / Node.js v16 (pull_request)"
+        - and:
+          - queue-partition-name=rundown
+          - "check-success=CI / Node.js v14 (pull_request)"
+          - "check-success=CI / Node.js v16 (pull_request)"
+
+  - name: default
+    priority_rules: *priority_rules
+    merge_conditions:
+      - or:
+        - and:
+          - queue-partition-name=rush
+          - "check-success=File Doc Tickets / File Tickets (pull_request)"
+          - "check-success=CI / Node.js v14 (pull_request)"
+          - "check-success=CI / Node.js v16 (pull_request)"
+        - and:
+          - queue-partition-name=heft
+          - "check-success=CI / Node.js v14 (pull_request)"
+          - "check-success=CI / Node.js v16 (pull_request)"
+        - and:
+          - queue-partition-name=rundown
+          - "check-success=CI / Node.js v14 (pull_request)"
+          - "check-success=CI / Node.js v16 (pull_request)"
