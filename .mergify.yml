@@ -6,8 +6,32 @@ shared:
           priority: high
         - name: lowprio PR detected
           conditions:
-            - author=dependabot[bot]
+            - label=lowprio
           priority: low
+
+    CheckRuns: &CheckRuns
+      - or:
+        - and:
+          - queue-partition-name=rush
+          - "check-success=CI / Node.js v14 (ubuntu-latest) (pull_request)"
+          - "check-success=CI / Node.js v18 (ubuntu-latest) (pull_request)"
+          - "check-success=CI / Node.js v16 (windows-latest) (pull_request)"
+          - "check-success=CI / Node.js v18 (windows-latest) (pull_request)"
+          - "check-success=license/cla"
+        - and:
+          - queue-partition-name=heft
+          - "check-success=CI / Node.js v14 (ubuntu-latest) (pull_request)"
+          - "check-success=CI / Node.js v18 (ubuntu-latest) (pull_request)"
+          - "check-success=CI / Node.js v16 (windows-latest) (pull_request)"
+          - "check-success=CI / Node.js v18 (windows-latest) (pull_request)"
+          - "check-success=license/cla"
+        - and:
+          - queue-partition-name=rundown
+          - "check-success=CI / Node.js v14 (ubuntu-latest) (pull_request)"
+          - "check-success=CI / Node.js v18 (ubuntu-latest) (pull_request)"
+          - "check-success=CI / Node.js v16 (windows-latest) (pull_request)"
+          - "check-success=CI / Node.js v18 (windows-latest) (pull_request)"
+          - "check-success=license/cla"
 
 pull_request_rules:
    - name: queue PR with queue label
@@ -15,6 +39,31 @@ pull_request_rules:
        - label=queue
      actions:
        queue:
+
+   - name: request review from Pete
+     conditions:
+       - -author=octogonz
+       - -merged
+       - -closed
+     actions:
+       request_reviews:
+         users:
+           - octogonz
+
+   - name: testing requirements
+     conditions:
+         - or:
+           - label=skip tests
+           - "-title~=^(feat|fix)"
+           - "files~=rushstack-mergify/build-tests"
+     actions:
+       post_check:
+         title: |
+           {% if check_succeed %}
+           Testing requirements are present.
+           {% else %}
+           Testing requirements are missing.
+           {% endif %}
 
 
 partition_rules:
@@ -37,35 +86,9 @@ queue_rules:
     queue_conditions:
       - label=hotfix
     merge_conditions:
-      - or:
-        - and:
-          - queue-partition-name=rush
-          - "check-success=File Doc Tickets / File Tickets (pull_request)"
-          - "check-success=CI / Node.js v14 (pull_request)"
-          - "check-success=CI / Node.js v16 (pull_request)"
-        - and:
-          - queue-partition-name=heft
-          - "check-success=CI / Node.js v14 (pull_request)"
-          - "check-success=CI / Node.js v16 (pull_request)"
-        - and:
-          - queue-partition-name=rundown
-          - "check-success=CI / Node.js v14 (pull_request)"
-          - "check-success=CI / Node.js v16 (pull_request)"
+      - and: *CheckRuns
 
   - name: default
     priority_rules: *priority_rules
     merge_conditions:
-      - or:
-        - and:
-          - queue-partition-name=rush
-          - "check-success=File Doc Tickets / File Tickets (pull_request)"
-          - "check-success=CI / Node.js v14 (pull_request)"
-          - "check-success=CI / Node.js v16 (pull_request)"
-        - and:
-          - queue-partition-name=heft
-          - "check-success=CI / Node.js v14 (pull_request)"
-          - "check-success=CI / Node.js v16 (pull_request)"
-        - and:
-          - queue-partition-name=rundown
-          - "check-success=CI / Node.js v14 (pull_request)"
-          - "check-success=CI / Node.js v16 (pull_request)"
+      - and: *CheckRuns
