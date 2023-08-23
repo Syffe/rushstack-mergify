@@ -13,6 +13,9 @@ if (NodeJsCompatibility.reportAncientIncompatibleVersion()) {
   process.exit(1);
 }
 
+
+// test comment
+
 const alreadyReportedNodeTooNewError: boolean = NodeJsCompatibility.warnAboutVersionTooNew({
   isRushLib: false,
   alreadyReportedNodeTooNewError: false
